@@ -8,7 +8,7 @@
 
 **PHP Vibe Coded Admin Panel** - An open-source, mobile-optimized database management interface for PHP developers. Rapidly built with AI-generated code and released as free software, featuring inline editing, SQL execution, and responsive table views.
 
-![PHPVCAP Screenshot](/design/screenshot.png)
+![Screenshot](design/screenshot.png)
 
 ## ✨ Features
 
