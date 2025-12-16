@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#111827">
+
+<title>Mobile Database Admin</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<!-- Add these to your <head> section -->
+<link rel="stylesheet" href="./codemirror/codemirror.min.css">
+<link rel="stylesheet" href="./codemirror/dracula.min.css">
+<style>
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 13px;
+}
+
+/* TOOLBAR */
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  background: #020617;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  flex-wrap: wrap; /* keep for responsiveness */
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.db-name {
+  padding: 5px 12px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #60a5fa;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.db-name:hover {
+  background: #334155;
+}
+
+.table-select {
+  padding: 5px 8px;
+  background: #020617;
+  border: 1px solid #334155;
+  color: #e5e7eb;
+  border-radius: 4px;
+  min-width: 120px;
+}
+
+.table-search {
+  padding: 5px 8px;
+  background: #020617;
+  border: 1px solid #334155;
+  color: #e5e7eb;
+  border-radius: 4px;
+  width: 120px;
+}
+
+.table-search::placeholder {
+  color: #64748b;
+}
+
+.menu-btn {
+  padding: 6px 10px;
+  background: #1e293b;       /* matches db-name bg */
+  border: 1px solid #334155; /* subtle border like other buttons */
+  color: #60a5fa;            /* matches db-name text color */
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.menu-btn:hover {
+  background: #334155;       /* hover effect like db-name */
+  color: #2563eb;            /* slightly brighter on hover */
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.toolbar-actions button {
+  padding: 6px 8px;
+  background: #020617;
+  border: 1px solid #334155;
+  color: #cbd5f5;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.toolbar-actions button:hover {
+  color: #60a5fa;
+}
+
+.insert-btn {
+  padding: 6px 12px;
+  background: #2563eb;
+  border: none;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.row-count {
+  margin-left: auto;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* QUERY STATUS BAR */
+.query-status {
+  padding: 6px 8px;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+  color: #94a3b8;
+  font-size: 12px;
+  display: none;
+  position: sticky;
+  top: 42px;
+  z-index: 18;
+}
+
+.query-status.success {
+  border-left: 3px solid #22c55e;
+  color: #bbf7d0;
+}
+
+.query-status.info {
+  border-left: 3px solid #3b82f6;
+  color: #bfdbfe;
+}
+
+/* SELECTION TOOLBAR */
+.selection-toolbar {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  background: #1e293b;
+  position: sticky;
+  top: 68px;
+  z-index: 19;
+  border-bottom: 1px solid #334155;
+}
+
+.selection-toolbar button {
+  padding: 6px 8px;
+  background: #334155;
+  border: 1px solid #475569;
+  color: #e5e7eb;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.selection-toolbar button:hover {
+  background: #475569;
+}
+
+.selection-info {
+  margin-left: auto;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* TABLE */
+.table-wrap {
+  /* height: calc(100vh - 42px); */  /* remove this */
+  overflow: auto;
+}
+
+.db-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.db-table th,
+.db-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid #1e293b;
+  white-space: nowrap;
+  text-overflow: clip;
+  overflow: visible;
+  max-width: 200px;
+}
+
+.db-table th {
+  background: #020617;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  text-align: left;
+}
+
+.db-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.db-table th.sortable:hover {
+  background: #1e293b;
+}
+
+.db-table th .sort-icon {
+  margin-left: 4px;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.db-table tr:hover td {
+  background: #020617;
+}
+
+.db-table tr.selected-row td {
+  background: #1e40af;
+}
+
+/* EDITING STYLES */
+.editing-cell {
+  position: fixed;
+  z-index: 1000;
+  background: #0f172a;
+  border: 2px solid #2563eb;
+  border-radius: 4px;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.cell-edit-input {
+  width: 100%;
+  background: #0f172a;
+  color: #e5e7eb;
+  border: none;
+  padding: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.cell-edit-textarea {
+  width: 100%;
+  background: #0f172a;
+  color: #e5e7eb;
+  border: none;
+  padding: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+  max-height: 200px;
+}
+
+.cell-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #1e293b;
+  border-top: 1px solid #334155;
+}
+
+.cell-edit-btn {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.cell-edit-save {
+  background: #2563eb;
+  color: white;
+}
+
+.cell-edit-cancel {
+  background: #64748b;
+  color: white;
+}
+
+/* Checkbox column */
+.db-table th:first-child,
+.db-table td:first-child {
+  width: 40px;
+  text-align: center;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.db-table input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+</style>
+<style>
+/* INLINE EDIT */
+td[contenteditable="true"] {
+  outline: 1px dashed #2563eb;
+  background: #020617;
+  white-space: normal;
+  overflow: visible;
+  z-index: 5;
+  position: relative;
+}
+
+/* Make sure table columns expand when editing */
+.db-table tr td[contenteditable="true"] {
+  max-width: none;
+}
+
+</style>
+
+
+
+
+<style>
+.sql-editor-panel {
+  position: relative; /* instead of fixed */
+  bottom: auto;       /* remove fixed positioning */
+  width: 100%;
+  height: 200px;
+  display: none;
+  flex-direction: column;
+  border-top: 1px solid #334155;
+}
+
+.sql-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+}
+
+.sql-editor-header h4 {
+  margin: 0;
+  color: #e5e7eb;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sql-editor-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.sql-editor-btn {
+  padding: 4px 8px;
+  border: 1px solid #334155;
+  background: #020617;
+  color: #cbd5f5;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sql-editor-btn:hover {
+  background: #1e293b;
+}
+
+.sql-editor-btn.primary {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.sql-editor-btn.success {
+  background: #22c55e;
+  color: white;
+  border-color: #22c55e;
+}
+
+.sql-editor-body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Adjust table height when editor is open */
+
+body.editor-open .table-wrap {
+  /*height: calc(100vh - 42px - var(--editor-height));*/
+}
+
+/* Resize handle */
+.sql-editor-resize {
+  height: 6px;
+  background: #1e293b;
+  cursor: ns-resize;
+  border-top: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sql-editor-resize::before {
+  content: "⋮";
+  color: #64748b;
+  font-size: 10px;
+}
+
+/* CodeMirror custom styling */
+.CodeMirror {
+  height: 100% !important;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.CodeMirror-lines {
+  padding: 4px 0;
+}
+
+.CodeMirror-line {
+  padding: 0 4px;
+}
+
+.cm-s-dracula.CodeMirror {
+  background: #0f172a !important;
+  color: #e5e7eb !important;
+}
+
+.cm-s-dracula .CodeMirror-gutters {
+  background: #020617 !important;
+  border-right: 1px solid #334155 !important;
+}
+
+.cm-s-dracula .CodeMirror-linenumber {
+  color: #64748b !important;
+  font-size: 10px !important;
+  padding: 0 4px !important;
+}
+
+/* SQL syntax highlighting */
+.cm-s-dracula .cm-keyword { color: #ff79c6 !important; }
+.cm-s-dracula .cm-builtin { color: #50fa7b !important; }
+.cm-s-dracula .cm-string { color: #f1fa8c !important; }
+.cm-s-dracula .cm-number { color: #bd93f9 !important; }
+.cm-s-dracula .cm-operator { color: #ff79c6 !important; }
+.cm-s-dracula .cm-variable { color: #8be9fd !important; }
+.cm-s-dracula .cm-comment { color: #6272a4 !important; }
+</style>
+
+
+</head>
+
+<body>
+
+<!-- MAIN TOOLBAR -->
+<div class="table-toolbar">
+  <div class="toolbar-left">
+    <div class="db-name" onclick="showDatabasesModal()">
+      <i class="fa-solid fa-database"></i>
+      <span id="currentDb">mydb</span>
+    </div>
+
+    <select class="table-select" id="tableSelect" onchange="switchTable(this.value)">
+      <option value="users">users</option>
+      <option value="projects">projects</option>
+      <option value="payments">payments</option>
+      <option value="settings">settings</option>
+    </select>
+
+    <input type="text" class="table-search" id="searchInput" placeholder="Search..." oninput="searchTable()">
+
+<button class="menu-btn" onclick="toggleSidebar(this)">
+  <i class="fa-solid fa-bars"></i>
+</button>
+
+  </div>
+
+  <div class="toolbar-actions">
+    <button title="Refresh" onclick="refreshTable()"><i class="fa-solid fa-rotate"></i></button>
+    <button title="Structure" onclick="showStructure()"><i class="fa-solid fa-table-columns"></i></button>
+    <button title="Truncate" onclick="truncateTable()"><i class="fa-solid fa-trash"></i></button>
+    <button title="SQL" onclick="showSqlEditor()"><i class="fa-solid fa-terminal"></i></button>
+    <button title="Export All" onclick="exportData()"><i class="fa-solid fa-download"></i></button>
+  </div>
+
+  <button class="insert-btn" onclick="showInsertModal()">
+    <i class="fa-solid fa-plus"></i> Insert
+  </button>
+
+  <span class="row-count" id="rowCount">Rows: 4</span>
+</div>
+<!-- QUERY STATUS BAR -->
+<div class="query-status" id="queryStatus"></div>
+
+<!-- SELECTION TOOLBAR -->
+<div class="selection-toolbar" id="selectionToolbar">
+  <button title="Edit selected" onclick="editSelected()"><i class="fa-solid fa-pen"></i> Edit</button>
+  <button title="Delete selected" onclick="deleteSelected()"><i class="fa-solid fa-trash"></i> Delete</button>
+  <button title="Export selected" onclick="exportSelected()"><i class="fa-solid fa-download"></i> Export</button>
+  <button title="Clone selected" onclick="cloneSelected()"><i class="fa-solid fa-copy"></i> Clone</button>
+  <span class="selection-info" id="selectionInfo">0 rows selected</span>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrap">
+<table class="db-table" id="dataTable">
+<thead>
+<tr>
+  <th><input type="checkbox" id="selectAll"></th>
+  <th style="min-width:60px" class="sortable" onclick="sortTable('id')">ID <span class="sort-icon" id="sortIcon-id">↓</span></th>
+  <th style="min-width:100px" class="sortable" onclick="sortTable('username')">Username <span class="sort-icon" id="sortIcon-username"></span></th>
+  <th style="min-width:150px" class="sortable" onclick="sortTable('email')">Email <span class="sort-icon" id="sortIcon-email"></span></th>
+  <th style="min-width:100px" class="sortable" onclick="sortTable('role')">Role <span class="sort-icon" id="sortIcon-role"></span></th>
+  <th style="min-width:80px" class="sortable" onclick="sortTable('status')">Status <span class="sort-icon" id="sortIcon-status"></span></th>
+  <th style="min-width:100px" class="sortable" onclick="sortTable('created')">Created <span class="sort-icon" id="sortIcon-created"></span></th>
+</tr>
+</thead>
+
+<tbody id="tableBody">
+<tr>
+  <td><input type="checkbox" class="row-checkbox" data-id="1"></td>
+  <td>1</td>
+  <td ondblclick="editCell(this)">admin</td>
+  <td ondblclick="editCell(this)">admin@site.com</td>
+  <td ondblclick="editCell(this)">Owner</td>
+  <td ondblclick="editCell(this)">Active</td>
+  <td>2024-10-01</td>
+</tr>
+
+<tr>
+  <td><input type="checkbox" class="row-checkbox" data-id="2"></td>
+  <td>2</td>
+  <td ondblclick="editCell(this)">lodwick</td>
+  <td ondblclick="editCell(this)">lodwick@mail.com</td>
+  <td ondblclick="editCell(this)">Developer</td>
+  <td ondblclick="editCell(this)">Active</td>
+  <td>2024-10-12</td>
+</tr>
+
+<tr>
+  <td><input type="checkbox" class="row-checkbox" data-id="3"></td>
+  <td>3</td>
+  <td ondblclick="editCell(this)">jane_doe</td>
+  <td ondblclick="editCell(this)">jane@example.com</td>
+  <td ondblclick="editCell(this)">Editor</td>
+  <td ondblclick="editCell(this)">Pending</td>
+  <td>2024-10-15</td>
+</tr>
+
+<tr>
+  <td><input type="checkbox" class="row-checkbox" data-id="4"></td>
+  <td>4</td>
+  <td ondblclick="editCell(this)">john_smith</td>
+  <td ondblclick="editCell(this)">john@example.com</td>
+  <td ondblclick="editCell(this)">Viewer</td>
+  <td ondblclick="editCell(this)">Active</td>
+  <td>2024-10-18</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+
+
+<!-- SQL Editor Panel HTML (place before closing </body>) -->
+<div class="sql-editor-panel" id="sqlEditorPanel">
+  <div style="height:4px; background:#334155;"></div>
+  <div class="sql-editor-resize" id="sqlEditorResize"></div>
+  <div class="sql-editor-header">
+    <h4>
+      <i class="fa-solid fa-terminal"></i>
+      SQL Editor
+    </h4>
+    <div class="sql-editor-controls">
+      <button class="sql-editor-btn" onclick="insertTemplate('SELECT')" title="Insert SELECT template">
+        <i class="fa-solid fa-search"></i>
+      </button>
+      <button class="sql-editor-btn" onclick="insertTemplate('INSERT')" title="Insert INSERT template">
+        <i class="fa-solid fa-plus"></i>
+      </button>
+      <button class="sql-editor-btn" onclick="insertTemplate('UPDATE')" title="Insert UPDATE template">
+        <i class="fa-solid fa-pen"></i>
+      </button>
+      <button class="sql-editor-btn" onclick="insertTemplate('DELETE')" title="Insert DELETE template">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+      <button class="sql-editor-btn" onclick="clearSqlEditor()" title="Clear editor">
+        <i class="fa-solid fa-eraser"></i>
+      </button>
+      <div style="width: 1px; background: #334155; margin: 0 4px;"></div>
+      <button class="sql-editor-btn success" onclick="executeSqlQuery()" title="Execute (Ctrl+Enter)">
+        <i class="fa-solid fa-play"></i> Execute
+      </button>
+      <button class="sql-editor-btn" onclick="toggleSqlEditor()" title="Close editor">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+  </div>
+  <div class="sql-editor-body">
+    <textarea id="sqlCodeEditor" style="display: none;"></textarea>
+  </div>
+</div>
+
+
+<!-- Sidebar -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h2>PHP VCAP</h2>
+    <button class="close-btn" >
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+  <ul class="sidebar-menu">
+    <li><i class="fa-solid fa-database"></i> Databases</li>
+    <li><i class="fa-solid fa-users"></i> Users</li>
+    <li><i class="fa-solid fa-project-diagram"></i> Projects</li>
+    <li><i class="fa-solid fa-credit-card"></i> Payments</li>
+    <li><i class="fa-solid fa-gear"></i> Settings</li>
+  </ul>
+</div>
+
+
+<div id="overlay" class="overlay"></div>
+
+
+<style type="text/css">
+
+/* Sidebar styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -250px;        /* hidden by default */
+  width: 170px;
+  height: 100%;
+  background: #0f172a;
+  color: #e5e7eb;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.5);
+  transition: left 0.3s ease;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #020617;
+  border-bottom: 1px solid #334155;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #60a5fa;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #e5e7eb;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+}
+
+.sidebar-menu li {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #1e293b;
+  transition: background 0.2s, color 0.2s;
+}
+
+.sidebar-menu li:hover {
+  background: #1e293b;
+  color: #60a5fa;
+}
+
+/* Overlay for small screens */
+.overlay {
+  display: none;
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 50;
+}
+
+</style>
+<script type="text/javascript">
+const sidebar = document.getElementById("sidebar");
+const overlay = document.getElementById("overlay");
+const menuBtnIcon = document.querySelector(".menu-btn i"); // toolbar button icon
+const sidebarCloseBtn = document.querySelector(".close-btn i"); // sidebar close icon
+
+function toggleSidebar(btn) {
+  if (sidebar.style.left === "0px") {
+    // Close sidebar
+    sidebar.style.left = "-250px";
+    overlay.style.display = "none";
+    menuBtnIcon.classList.remove("fa-xmark");
+    menuBtnIcon.classList.add("fa-bars");
+  } else {
+    // Open sidebar
+    sidebar.style.left = "0";
+    overlay.style.display = "block";
+    menuBtnIcon.classList.remove("fa-bars");
+    menuBtnIcon.classList.add("fa-xmark");
+  }
+}
+
+// Clicking overlay closes sidebar and updates toolbar icon
+overlay.addEventListener("click", closeSidebarAndResetIcon);
+
+// Sidebar close button
+sidebarCloseBtn.parentElement.addEventListener("click", closeSidebarAndResetIcon);
+
+function closeSidebarAndResetIcon() {
+  sidebar.style.left = "-250px";
+  overlay.style.display = "none";
+  menuBtnIcon.classList.remove("fa-xmark");
+  menuBtnIcon.classList.add("fa-bars");
+}
+</script>
+
+<!-- Add this before your closing </body> tag -->
+<script src="./codemirror/codemirror.min.js"></script>
+<script src="./codemirror/sql.min.js"></script>
+<script>
+// SQL Editor JavaScript
+let sqlEditor = null;
+let isEditorOpen = false;
+let editorHeight = 200;
+
+// Initialize CodeMirror when needed
+function initCodeMirror() {
+  if (!sqlEditor) {
+    sqlEditor = CodeMirror.fromTextArea(document.getElementById('sqlCodeEditor'), {
+      mode: 'text/x-sql',
+      theme: 'dracula',
+      lineNumbers: true,
+      lineWrapping: false,
+      indentWithTabs: true,
+      smartIndent: true,
+      matchBrackets: true,
+      autofocus: true,
+      viewportMargin: Infinity,
+      extraKeys: {
+        "Ctrl-Enter": function(cm) {
+          executeSqlQuery();
+        },
+        "Cmd-Enter": function(cm) {
+          executeSqlQuery();
+        },
+        "Ctrl-/": function(cm) {
+          cm.toggleComment();
+        },
+        "Ctrl-Space": "autocomplete",
+        "Tab": function(cm) {
+          if (cm.somethingSelected()) {
+            cm.indentSelection("add");
+          } else {
+            cm.replaceSelection("  ", "end");
+          }
+        },
+        "Shift-Tab": function(cm) {
+          cm.indentSelection("subtract");
+        }
+      }
+    });
+    
+    // Set default query
+    const defaultQuery = `SELECT * FROM ${currentTable} LIMIT 10;`;
+    sqlEditor.setValue(defaultQuery);
+    
+    // Refresh editor display
+    setTimeout(() => sqlEditor.refresh(), 100);
+  }
+}
+
+function toggleSqlEditor() {
+  const panel = document.getElementById('sqlEditorPanel');
+  const tableWrap = document.querySelector('.table-wrap');
+  
+  if (!isEditorOpen) {
+    // Open editor
+    panel.style.display = 'flex';
+    panel.style.height = editorHeight + 'px';
+    document.body.classList.add('editor-open');
+    isEditorOpen = true;
+    
+    // Initialize CodeMirror
+    initCodeMirror();
+    
+    // Focus editor after a short delay
+    setTimeout(() => {
+      if (sqlEditor) {
+        sqlEditor.focus();
+      }
+    }, 50);
+  } else {
+    // Close editor
+    panel.style.display = 'none';
+    document.body.classList.remove('editor-open');
+    isEditorOpen = false;
+  }
+}
+
+function insertTemplate(type) {
+  if (!sqlEditor) return;
+  
+  const templates = {
+    SELECT: `SELECT * FROM ${currentTable} WHERE id = 1 LIMIT 10;`,
+    INSERT: `INSERT INTO ${currentTable} (username, email, role, status) VALUES ('new_user', 'new@example.com', 'Viewer', 'Active');`,
+    UPDATE: `UPDATE ${currentTable} SET role = 'Editor', status = 'Active' WHERE id = 1;`,
+    DELETE: `DELETE FROM ${currentTable} WHERE id = 1;`
+  };
+  
+  const cursor = sqlEditor.getCursor();
+  sqlEditor.replaceRange(templates[type] + '\n', cursor);
+  sqlEditor.focus();
+}
+
+function clearSqlEditor() {
+  if (sqlEditor) {
+    sqlEditor.setValue('');
+    sqlEditor.focus();
+  }
+}
+
+function executeSqlQuery() {
+  if (!sqlEditor) return;
+  
+  const query = sqlEditor.getValue().trim();
+  if (!query) {
+    showQueryStatus('Error: No SQL query entered', 'info');
+    return;
+  }
+  
+  const startTime = performance.now();
+  
+  // Show executing status
+  showQueryStatus('Executing query...', 'info');
+  
+  // Simulate server request
+  setTimeout(() => {
+    const endTime = performance.now();
+    const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+    
+    // Determine query type
+    const firstWord = query.split(' ')[0].toUpperCase();
+    let message = '';
+    
+    switch(firstWord) {
+      case 'SELECT':
+        message = `Showing rows 0-24 (25 total, Query took ${timeTaken} sec)`;
+        break;
+      case 'INSERT':
+        message = `Query OK, 1 row affected`;
+        break;
+      case 'UPDATE':
+        message = `Query OK, 1 row affected`;
+        break;
+      case 'DELETE':
+        message = `Query OK, 1 row affected`;
+        break;
+      default:
+        message = `Query executed successfully`;
+    }
+    
+    showQueryStatus(message, 'success', timeTaken);
+  }, 600);
+}
+
+// Resize functionality
+document.getElementById('sqlEditorResize').addEventListener('mousedown', initResize);
+
+function initResize(e) {
+  e.preventDefault();
+  const panel = document.getElementById('sqlEditorPanel');
+  const startY = e.clientY;
+  const startHeight = parseInt(getComputedStyle(panel).height);
+  
+  function doResize(e) {
+    const newHeight = startHeight + (startY - e.clientY);
+    if (newHeight > 100 && newHeight < 500) {
+      editorHeight = newHeight;
+      panel.style.height = newHeight + 'px';
+      updateTableHeight(newHeight);
+    }
+  }
+  
+  function stopResize() {
+    document.removeEventListener('mousemove', doResize);
+    document.removeEventListener('mouseup', stopResize);
+  }
+  
+  document.addEventListener('mousemove', doResize);
+  document.addEventListener('mouseup', stopResize);
+}
+
+function updateTableHeight(height) {
+  document.documentElement.style.setProperty('--editor-height', height + 'px');
+}
+
+// Initialize CSS variable
+document.documentElement.style.setProperty('--editor-height', '200px');
+
+// Update your SQL button in toolbar
+document.addEventListener('DOMContentLoaded', function() {
+  const sqlBtn = document.querySelector('button[title="SQL"]');
+  if (sqlBtn) {
+    sqlBtn.onclick = toggleSqlEditor;
+  }
+});
+
+// Keyboard shortcut to toggle editor (Alt+S)
+document.addEventListener('keydown', function(e) {
+  if (e.altKey && e.key === 's') {
+    e.preventDefault();
+    toggleSqlEditor();
+  }
+});
+</script>
+
+
+
+<script>
+let selectedRows = new Set();
+let tableData = [];
+let currentSort = { column: 'id', direction: 'asc' };
+let currentDatabase = 'mydb';
+let currentTable = 'users';
+let queryCounter = 0;
+let editingCell = null;
+
+// Initialize table data
+function initializeTableData() {
+  const rows = document.querySelectorAll('#tableBody tr');
+  tableData = Array.from(rows).map(row => ({
+    id: row.cells[1].textContent,
+    username: row.cells[2].textContent,
+    email: row.cells[3].textContent,
+    role: row.cells[4].textContent,
+    status: row.cells[5].textContent,
+    created: row.cells[6].textContent
+  }));
+}
+
+// Show query status
+function showQueryStatus(message, type = 'info', timeTaken = null) {
+  const statusBar = document.getElementById('queryStatus');
+  let statusMessage = message;
+  
+  if (type === 'success') {
+    queryCounter++;
+    if (timeTaken !== null) {
+      statusMessage += ` (Query took ${timeTaken} sec)`;
+    }
+    statusMessage += ` • ${queryCounter} queries executed successfully`;
+  }
+  
+  statusBar.textContent = statusMessage;
+  statusBar.className = `query-status ${type}`;
+  statusBar.style.display = 'block';
+  
+  // Auto-hide after 5 seconds for info messages
+  if (type === 'info') {
+    setTimeout(() => {
+      statusBar.style.display = 'none';
+    }, 5000);
+  }
+}
+
+function editCell(cell) {
+  const originalText = cell.textContent;
+  
+  // Store original display style
+  const originalWhiteSpace = cell.style.whiteSpace;
+  const originalOverflow = cell.style.overflow;
+  const originalMaxWidth = cell.style.maxWidth;
+  
+  // Enable editing
+  cell.contentEditable = true;
+  cell.style.whiteSpace = 'normal';
+  cell.style.overflow = 'visible';
+  cell.style.maxWidth = 'none';
+  cell.focus();
+  
+  // Select all text
+  const range = document.createRange();
+  range.selectNodeContents(cell);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  
+  function saveEdit() {
+    const newText = cell.textContent.trim();
+    cell.contentEditable = false;
+    
+    // Restore original styles
+    cell.style.whiteSpace = originalWhiteSpace;
+    cell.style.overflow = originalOverflow;
+    cell.style.maxWidth = originalMaxWidth;
+    
+    if (newText !== originalText && newText !== '') {
+      const startTime = performance.now();
+      
+      // Show loader spinner
+      cell.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+      
+      // Simulate update query (server request)
+      setTimeout(() => {
+        const endTime = performance.now();
+        const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+        
+        // Update cell with new text
+        cell.textContent = newText;
+        
+        // Update table data
+        const rowIndex = cell.parentNode.rowIndex - 1;
+        const colIndex = cell.cellIndex;
+        
+        // Get the column name from table header
+        const headers = document.querySelectorAll('#dataTable th');
+        const columnNames = ['id', 'username', 'email', 'role', 'status', 'created'];
+        const columnName = columnNames[colIndex - 1]; // -1 for checkbox column
+        
+        if (tableData[rowIndex] && columnName) {
+          tableData[rowIndex][columnName] = newText;
+        }
+        
+        showQueryStatus(`Query OK, 1 row affected`, 'success', timeTaken);
+      }, 600);
+    } else {
+      // Restore original text if unchanged or empty
+      cell.textContent = originalText;
+    }
+    
+    // Remove event listeners
+    cell.removeEventListener('blur', saveEdit);
+    cell.removeEventListener('keydown', handleKeydown);
+  }
+  
+  function handleKeydown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      saveEdit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cell.textContent = originalText;
+      cell.contentEditable = false;
+      
+      // Restore original styles
+      cell.style.whiteSpace = originalWhiteSpace;
+      cell.style.overflow = originalOverflow;
+      cell.style.maxWidth = originalMaxWidth;
+      
+      // Remove event listeners
+      cell.removeEventListener('blur', saveEdit);
+      cell.removeEventListener('keydown', handleKeydown);
+    }
+  }
+  
+  // Set up event listeners
+  cell.addEventListener('blur', saveEdit);
+  cell.addEventListener('keydown', handleKeydown);
+}
+
+// Sort table
+function sortTable(column) {
+  const startTime = performance.now();
+  
+  const icon = document.getElementById(`sortIcon-${column}`);
+  const allIcons = document.querySelectorAll('.sort-icon');
+  
+  // Reset all icons
+  allIcons.forEach(icon => icon.textContent = '');
+  
+  if (currentSort.column === column) {
+    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.column = column;
+    currentSort.direction = 'asc';
+  }
+  
+  icon.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
+  sortTableData();
+  renderTable();
+  
+  const endTime = performance.now();
+  const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+  
+  const visibleRows = document.querySelectorAll('#tableBody tr:not([style*="display: none"])').length;
+  const startRow = 1;
+  const endRow = visibleRows;
+  const totalRows = tableData.length;
+  
+  showQueryStatus(`Showing rows ${startRow}–${endRow} (${totalRows} total, Query took ${timeTaken} sec)`, 'info');
+}
+
+function sortTableData() {
+  tableData.sort((a, b) => {
+    let valA = a[currentSort.column];
+    let valB = b[currentSort.column];
+    
+    // Handle numeric columns
+    if (currentSort.column === 'id') {
+      valA = parseInt(valA);
+      valB = parseInt(valB);
+    }
+    
+    if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+    if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  
+  tableData.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="checkbox" class="row-checkbox" data-id="${row.id}"></td>
+      <td>${row.id}</td>
+      <td ondblclick="editCell(this)">${row.username}</td>
+      <td ondblclick="editCell(this)">${row.email}</td>
+      <td ondblclick="editCell(this)">${row.role}</td>
+      <td ondblclick="editCell(this)">${row.status}</td>
+      <td>${row.created}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  
+  updateRowCount();
+}
+
+// Search functionality
+function searchTable() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const rows = document.querySelectorAll('#tableBody tr');
+  let visibleCount = 0;
+  
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    if (text.includes(searchTerm)) {
+      row.style.display = '';
+      visibleCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  
+  updateRowCount();
+  
+  // Show search status
+  if (searchTerm) {
+    const totalRows = tableData.length;
+    showQueryStatus(`Found ${visibleCount} of ${totalRows} rows matching "${searchTerm}"`, 'info');
+  }
+}
+
+// Select All checkbox functionality
+document.getElementById('selectAll').addEventListener('change', function(e) {
+  const checkboxes = document.querySelectorAll('.row-checkbox:not(:disabled)');
+  const isChecked = e.target.checked;
+  
+  checkboxes.forEach(cb => {
+    if (cb.closest('tr').style.display !== 'none') {
+      cb.checked = isChecked;
+      const rowId = cb.getAttribute('data-id');
+      const row = cb.closest('tr');
+      
+      if (isChecked) {
+        selectedRows.add(rowId);
+        row.classList.add('selected-row');
+      } else {
+        selectedRows.delete(rowId);
+        row.classList.remove('selected-row');
+      }
+    }
+  });
+  
+  updateSelectionToolbar();
+});
+
+// Individual row checkbox functionality
+document.addEventListener('change', function(e) {
+  if (e.target.classList.contains('row-checkbox')) {
+    const rowId = e.target.getAttribute('data-id');
+    const row = e.target.closest('tr');
+    
+    if (e.target.checked) {
+      selectedRows.add(rowId);
+      row.classList.add('selected-row');
+    } else {
+      selectedRows.delete(rowId);
+      row.classList.remove('selected-row');
+      document.getElementById('selectAll').checked = false;
+    }
+    
+    updateSelectionToolbar();
+  }
+});
+
+// Update selection toolbar
+function updateSelectionToolbar() {
+  const selectionToolbar = document.getElementById('selectionToolbar');
+  const selectionInfo = document.getElementById('selectionInfo');
+  
+  if (selectedRows.size > 0) {
+    selectionToolbar.style.display = 'flex';
+    selectionInfo.textContent = selectedRows.size + ' row' + (selectedRows.size !== 1 ? 's' : '') + ' selected';
+  } else {
+    selectionToolbar.style.display = 'none';
+  }
+}
+
+// Row count
+function updateRowCount() {
+  const visibleRows = document.querySelectorAll('#tableBody tr:not([style*="display: none"])').length;
+  document.getElementById('rowCount').textContent = `Rows: ${visibleRows}`;
+}
+
+// Database and table switching
+function showDatabasesModal() {
+  document.getElementById('databasesModal').style.display = 'flex';
+}
+
+function closeDatabasesModal() {
+  document.getElementById('databasesModal').style.display = 'none';
+}
+
+function switchDatabase(dbName) {
+  currentDatabase = dbName;
+  document.getElementById('currentDb').textContent = dbName;
+  
+  // Update active database in modal
+  document.querySelectorAll('.database-item').forEach(item => {
+    item.classList.toggle('active', item.textContent === dbName);
+  });
+  
+  closeDatabasesModal();
+  
+  // Show tables modal after switching database
+  setTimeout(() => {
+    document.getElementById('tablesModal').style.display = 'flex';
+  }, 300);
+  
+  showQueryStatus(`Database changed to ${dbName}`, 'info');
+}
+
+function showTablesModal() {
+  document.getElementById('tablesModal').style.display = 'flex';
+}
+
+function closeTablesModal() {
+  document.getElementById('tablesModal').style.display = 'none';
+}
+
+function switchTable(tableName) {
+  currentTable = tableName;
+  document.getElementById('tableSelect').value = tableName;
+  
+  // Update active table in modal
+  document.querySelectorAll('.table-item').forEach(item => {
+    item.classList.toggle('active', item.textContent === tableName);
+  });
+  
+  closeTablesModal();
+  
+  // Simulate loading table data
+  showQueryStatus(`Loading table "${tableName}"...`, 'info');
+  setTimeout(() => {
+    // In a real app, you would fetch data for the new table here
+    showQueryStatus(`Table "${tableName}" loaded successfully`, 'info');
+  }, 500);
+}
+
+// Modal functions
+function showInsertModal() {
+  document.getElementById('insertModal').style.display = 'flex';
+}
+
+function closeInsertModal() {
+  document.getElementById('insertModal').style.display = 'none';
+}
+
+function insertNewRow() {
+  const username = document.getElementById('newUsername').value;
+  const email = document.getElementById('newEmail').value;
+  const role = document.getElementById('newRole').value;
+  const status = document.getElementById('newStatus').value;
+  
+  if (!username || !email || !role || !status) {
+    showQueryStatus('Error: Please fill all fields', 'info');
+    return;
+  }
+  
+  const startTime = performance.now();
+  
+  const newId = tableData.length > 0 ? Math.max(...tableData.map(r => parseInt(r.id))) + 1 : 1;
+  const newRow = {
+    id: newId.toString(),
+    username,
+    email,
+    role,
+    status,
+    created: new Date().toISOString().split('T')[0]
+  };
+  
+  tableData.push(newRow);
+  renderTable();
+  closeInsertModal();
+  
+  const endTime = performance.now();
+  const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+  
+  // Clear form
+  document.getElementById('newUsername').value = '';
+  document.getElementById('newEmail').value = '';
+  document.getElementById('newRole').value = '';
+  document.getElementById('newStatus').value = '';
+  
+  showQueryStatus(`Query OK, 1 row affected`, 'success', timeTaken);
+}
+
+// Action functions
+function editSelected() {
+  if (selectedRows.size === 0) {
+    showQueryStatus('Error: Please select rows to edit', 'info');
+    return;
+  }
+  
+  const startTime = performance.now();
+  setTimeout(() => {
+    const endTime = performance.now();
+    const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+    showQueryStatus(`Query OK, ${selectedRows.size} rows affected`, 'success', timeTaken);
+  }, 600);
+}
+
+function deleteSelected() {
+  if (selectedRows.size === 0) {
+    showQueryStatus('Error: Please select rows to delete', 'info');
+    return;
+  }
+  
+  const startTime = performance.now();
+  
+  if (confirm(`Delete ${selectedRows.size} row(s)? This action cannot be undone.`)) {
+    tableData = tableData.filter(row => !selectedRows.has(row.id));
+    selectedRows.clear();
+    renderTable();
+    updateSelectionToolbar();
+    
+    const endTime = performance.now();
+    const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+    showQueryStatus(`Query OK, ${selectedRows.size} rows affected`, 'success', timeTaken);
+  }
+}
+
+function exportSelected() {
+  if (selectedRows.size === 0) {
+    showQueryStatus('Error: Please select rows to export', 'info');
+    return;
+  }
+  
+  const dataToExport = tableData.filter(row => selectedRows.has(row.id));
+  exportToJSON(dataToExport, 'selected_rows.json');
+  
+  const startTime = performance.now();
+  setTimeout(() => {
+    const endTime = performance.now();
+    const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+    showQueryStatus(`Exported ${selectedRows.size} rows`, 'success', timeTaken);
+  }, 300);
+}
+
+function cloneSelected() {
+  if (selectedRows.size === 0) {
+    showQueryStatus('Error: Please select rows to clone', 'info');
+    return;
+  }
+  
+  const startTime = performance.now();
+  
+  const rowsToClone = tableData.filter(row => selectedRows.has(row.id));
+  rowsToClone.forEach(row => {
+    const newRow = { ...row };
+    newRow.id = (Math.max(...tableData.map(r => parseInt(r.id))) + 1).toString();
+    newRow.username = row.username + '_copy';
+    tableData.push(newRow);
+  });
+  
+  renderTable();
+  
+  const endTime = performance.now();
+  const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+  showQueryStatus(`Query OK, ${selectedRows.size} rows affected`, 'success', timeTaken);
+}
+
+function exportData() {
+  const startTime = performance.now();
+  
+  exportToJSON(tableData, 'table_export.json');
+  
+  setTimeout(() => {
+    const endTime = performance.now();
+    const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+    showQueryStatus(`Exported ${tableData.length} rows`, 'success', timeTaken);
+  }, 300);
+}
+
+function exportToJSON(data, filename) {
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function refreshTable() {
+  const startTime = performance.now();
+  
+  showQueryStatus('Refreshing table...', 'info');
+  
+  setTimeout(() => {
+    const endTime = performance.now();
+    const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+    
+    const visibleRows = document.querySelectorAll('#tableBody tr:not([style*="display: none"])').length;
+    const totalRows = tableData.length;
+    showQueryStatus(`Showing rows 1–${visibleRows} (${totalRows} total, Query took ${timeTaken} sec)`, 'info');
+  }, 600);
+}
+
+function showStructure() {
+  const startTime = performance.now();
+  
+  const columns = [
+    'ID (int) PRIMARY KEY AUTO_INCREMENT',
+    'Username (varchar(50)) NOT NULL',
+    'Email (varchar(100)) UNIQUE NOT NULL',
+    'Role (enum("Owner","Developer","Editor","Viewer")) DEFAULT "Viewer"',
+    'Status (enum("Active","Pending","Inactive")) DEFAULT "Pending"',
+    'Created (timestamp) DEFAULT CURRENT_TIMESTAMP'
+  ];
+  
+  setTimeout(() => {
+    const endTime = performance.now();
+    const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+    
+    alert('Table Structure:\n\n' + columns.join('\n') + `\n\n(Query took ${timeTaken} sec)`);
+    showQueryStatus(`Structure of table "${currentTable}"`, 'info', timeTaken);
+  }, 300);
+}
+
+function truncateTable() {
+  if (confirm('Are you sure you want to truncate the entire table? This cannot be undone.')) {
+    const startTime = performance.now();
+    
+    tableData = [];
+    renderTable();
+    
+    const endTime = performance.now();
+    const timeTaken = ((endTime - startTime) / 1000).toFixed(3);
+    showQueryStatus(`Query OK, table truncated`, 'success', timeTaken);
+  }
+}
+
+// Initialize
+initializeTableData();
+updateRowCount();
+updateSelectionToolbar();
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  // Ctrl/Cmd + F for search
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault();
+    document.getElementById('searchInput').focus();
+  }
+  
+  // Escape to clear selection and close modals
+  if (e.key === 'Escape') {
+    if (editingCell) {
+      editingCell.remove();
+      editingCell = null;
+    }
+    
+    selectedRows.clear();
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.selected-row').forEach(row => row.classList.remove('selected-row'));
+    updateSelectionToolbar();
+  }
+  
+  // Delete key to delete selected
+  if (e.key === 'Delete' && selectedRows.size > 0) {
+    deleteSelected();
+  }
+  
+  // Ctrl+Enter to execute SQL
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    const sqlModal = document.getElementById('sqlModal');
+    if (sqlModal.style.display === 'flex') {
+      executeSql();
+    }
+  }
+});
+</script>
+
+</body>
+</html>
