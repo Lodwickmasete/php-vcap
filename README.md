@@ -33,5 +33,5 @@
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/lodwickmasete/phpvcap.git
-cd phpvcap
+git clone https://github.com/lodwickmasete/php-vcap.git
+cd php-vcap
