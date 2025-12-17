@@ -376,3 +376,92 @@ function bindTableEvents() {
     };
   });
 }
+
+
+
+// Replace the existing drag code with this:
+
+const panel = document.getElementById('sqlEditorPanel');
+const resizeHandle = document.getElementById('sqlEditorResize');
+
+let isDragging = false;
+let startY = 0;
+let startHeight = 0;
+
+function startDrag(y) {
+  isDragging = true;
+  startY = y;
+  startHeight = parseInt(getComputedStyle(panel).height, 10);
+  document.body.style.cursor = 'ns-resize';
+  document.body.style.userSelect = 'none';
+}
+
+function doDrag(y) {
+  if (!isDragging) return;
+  
+  const delta = y - startY; // Changed to y - startY for natural dragging
+  let newHeight = startHeight - delta; // Subtract instead of add
+  
+  // Apply limits (min: 150px, max: 80% of viewport)
+  const minHeight = 150;
+  const maxHeight = window.innerHeight * 0.8;
+  newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+  
+  panel.style.height = newHeight + 'px';
+  
+  // Update the table height dynamically
+  updateTableHeight(newHeight);
+}
+
+function stopDrag() {
+  isDragging = false;
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+}
+
+function updateTableHeight(editorHeight) {
+  const tableWrap = document.querySelector('.table-wrap');
+  if (tableWrap) {
+    const availableHeight = window.innerHeight - 42 - editorHeight; // Adjust 42px for header
+    tableWrap.style.height = Math.max(200, availableHeight) + 'px';
+  }
+}
+
+// Mouse events
+resizeHandle.addEventListener('mousedown', e => {
+  e.preventDefault();
+  startDrag(e.clientY);
+});
+
+document.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  e.preventDefault();
+  doDrag(e.clientY);
+});
+
+document.addEventListener('mouseup', e => {
+  if (!isDragging) return;
+  e.preventDefault();
+  stopDrag();
+});
+
+// Touch events
+resizeHandle.addEventListener('touchstart', e => {
+  e.preventDefault();
+  startDrag(e.touches[0].clientY);
+});
+
+document.addEventListener('touchmove', e => {
+  if (!isDragging) return;
+  e.preventDefault();
+  doDrag(e.touches[0].clientY);
+});
+
+document.addEventListener('touchend', e => {
+  if (!isDragging) return;
+  e.preventDefault();
+  stopDrag();
+});
+
+// Prevent default touch behavior
+resizeHandle.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
