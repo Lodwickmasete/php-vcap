@@ -121,6 +121,27 @@ body.editor-open .table-wrap {
   padding: 0 4px !important;
 }
 
+.sql-editor-separator {
+  height: 8px;
+  background: #334155;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.sql-editor-separator::before {
+  content: "⋮⋮";
+  color: #64748b;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.sql-editor-separator:hover {
+  background: #475569;
+}
+
 /* SQL syntax highlighting */
 .cm-s-dracula .cm-keyword { color: #ff79c6 !important; }
 .cm-s-dracula .cm-builtin { color: #50fa7b !important; }
