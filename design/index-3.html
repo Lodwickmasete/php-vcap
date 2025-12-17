@@ -1,0 +1,94 @@
+<style>
+  .db-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    table-layout: auto; /* lets columns adjust based on content */
+  }
+
+  .db-table th,
+  .db-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    white-space: nowrap; /* prevents wrapping */
+    max-width: 150px; /* set a reasonable max width for long values */
+    overflow: hidden;
+    text-overflow: ellipsis; /* shows ... for long text */
+  }
+
+  .db-table th {
+    background: #f9fafb;
+    font-weight: 600;
+  }
+
+  .text-muted {
+    color: #6b7280;
+  }
+</style>
+
+<table class="db-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Status</th>
+      <th>Country</th>
+      <th>Last Login</th>
+      <th>Created At</th>
+      <th>Updated At</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>lodwick</td>
+      <td>lodwick@mail.com</td>
+      <td>Admin</td>
+      <td>Active</td>
+      <td>ZA</td>
+      <td class="text-muted">2025-12-16 10:21</td>
+      <td class="text-muted">2025-10-01</td>
+      <td class="text-muted">2025-12-15</td>
+    </tr>
+
+    <tr>
+      <td>2</td>
+      <td>thabo</td>
+      <td>thabo@mail.com</td>
+      <td>User</td>
+      <td>Active</td>
+      <td>ZA</td>
+      <td class="text-muted">2025-12-15 22:40</td>
+      <td class="text-muted">2025-10-05</td>
+      <td class="text-muted">2025-12-14</td>
+    </tr>
+
+    <tr>
+      <td>3</td>
+      <td>admin2</td>
+      <td>admin@mail.com</td>
+      <td>Moderator</td>
+      <td>Suspended</td>
+      <td>NG</td>
+      <td class="text-muted">2025-11-30 09:11</td>
+      <td class="text-muted">2025-09-20</td>
+      <td class="text-muted">2025-11-30</td>
+    </tr>
+
+    <tr>
+      <td>4</td>
+      <td>guest01</td>
+      <td>guest@mail.com</td>
+      <td>Guest</td>
+      <td>Inactive</td>
+      <td>KE</td>
+      <td class="text-muted">Never</td>
+      <td class="text-muted">2025-12-01</td>
+      <td class="text-muted">NULL</td>
+    </tr>
+  </tbody>
+</table>
