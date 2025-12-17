@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+
+<!-- MOBILE SCALE (IMPORTANT) -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+<!-- ADMIN SAFETY -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#111827">
+
+<title>Database Admin</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: #0f172a;
+  color: #e5e7eb;
+  font-size: 13px;
+}
+
+/* TOOLBAR */
+.table-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  background: #020617;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table-toolbar input {
+  padding: 6px 8px;
+  background: #020617;
+  border: 1px solid #334155;
+  color: #e5e7eb;
+  border-radius: 4px;
+  flex: 1;
+}
+
+.table-toolbar button {
+  padding: 6px 10px;
+  background: #2563eb;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.table-toolbar span {
+  align-self: center;
+  color: #94a3b8;
+}
+
+/* TABLE */
+.table-wrap {
+  overflow: auto;
+  height: calc(100vh - 50px);
+}
+
+.db-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.db-table th,
+.db-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-table th {
+  background: #020617;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  text-align: left;
+  font-weight: 600;
+}
+
+.db-table tr:hover td {
+  background: #020617;
+}
+
+/* ACTIONS */
+.actions {
+  color: #60a5fa;
+  cursor: pointer;
+}
+
+/* INLINE EDIT */
+td[contenteditable="true"] {
+  outline: 1px dashed #2563eb;
+  background: #020617;
+}
+
+/* EMPTY STATE */
+.empty {
+  text-align: center;
+  padding: 20px;
+  color: #64748b;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="table-toolbar">
+  <input type="search" placeholder="Search table…">
+  <button>Add Row</button>
+  <span>Rows: 3</span>
+</div>
+
+<div class="table-wrap">
+<table class="db-table">
+<thead>
+<tr>
+  <th style="width:60px">ID</th>
+  <th>Name</th>
+  <th>Email</th>
+  <th>Role</th>
+  <th style="width:100px">Actions</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+  <td>1</td>
+  <td ondblclick="edit(this)">Admin</td>
+  <td ondblclick="edit(this)">admin@example.com</td>
+  <td ondblclick="edit(this)">Owner</td>
+  <td class="actions">Edit · Delete</td>
+</tr>
+
+<tr>
+  <td>2</td>
+  <td ondblclick="edit(this)">User One</td>
+  <td ondblclick="edit(this)">user1@mail.com</td>
+  <td ondblclick="edit(this)">Member</td>
+  <td class="actions">Edit · Delete</td>
+</tr>
+
+<tr>
+  <td>3</td>
+  <td ondblclick="edit(this)">User Two</td>
+  <td ondblclick="edit(this)">user2@mail.com</td>
+  <td ondblclick="edit(this)">Guest</td>
+  <td class="actions">Edit · Delete</td>
+</tr>
+
+<!-- EMPTY STATE -->
+<!--
+<tr>
+  <td colspan="5" class="empty">No records found</td>
+</tr>
+-->
+</tbody>
+</table>
+</div>
+
+<script>
+function edit(cell) {
+  cell.setAttribute("contenteditable", "true");
+  cell.focus();
+
+  cell.onblur = () => {
+    cell.removeAttribute("contenteditable");
+    // TODO: AJAX save here
+    console.log("Saved:", cell.innerText);
+  };
+}
+</script>
+
+</body>
+</html>
